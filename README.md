@@ -120,6 +120,23 @@ qualite-air-france/
 > 🌐 **Démo en ligne :** https://qualite-air-france-venqzlewb9ejx5qf879tek.streamlit.app/
 ---
 
+## Aperçu du rapport Power BI
+
+![Dashboard Power BI - Qualité de l'air](dashboard-powerbi/apercu-dashboard.png)
+
+Le rapport complet est disponible au format PDF : [dashboard-qualite-air.pdf](dashboard-powerbi/dashboard-qualite-air.pdf)
+
+Le rapport couvre :
+- Indicateurs clés : mesures collectées, villes, stations, dépassements OMS, taux d'anomalie
+- Évolution temporelle du NO₂ par ville avec seuil OMS de référence
+- Comparatif des moyennes par ville et par polluant
+- Géolocalisation des stations, taille des bulles proportionnelle aux anomalies détectées
+
+Mesures DAX utilisées : `Nb Mesures`, `Nb Villes`, `Nb Stations`, `Depassements OMS`, `Taux anomalie`.
+
+---
+
+
 ## Sources
 
 - [OpenAQ API v3 documentation](https://docs.openaq.org/)
