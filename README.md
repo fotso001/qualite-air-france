@@ -117,7 +117,7 @@ qualite-air-france/
 ├── requirements.txt
 └── README.md
 ```
-
+> 🌐 **Démo en ligne :** https://qualite-air-france-venqzlewb9ejx5qf879tek.streamlit.app/
 ---
 
 ## Sources
