@@ -41,20 +41,28 @@ st.caption("Pipeline ETL Python → SQLite → Streamlit · Donnees OpenAQ v3 ·
 # ─── CHARGEMENT DES DONNEES (avec collecte auto + cache) ──────────────────────
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def collecter_et_charger(jours: int = 2):
+def collecter_et_charger():
     """
-    Lance le pipeline ETL si la BDD n'existe pas ou est vide,
-    puis charge les mesures. Cache 1h pour ne pas spammer l'API.
+    Lance le pipeline ETL si la BDD n'existe pas ou est vide, puis charge les mesures.
+    Cache 1h pour ne pas spammer l'API.
+
+    NOTE : en cloud Streamlit, on limite le scope pour tenir en <60s
+    (health-check timeout). Pour la version complete, lancer localement.
     """
     db_exists = DB_PATH.exists() and DB_PATH.stat().st_size > 10_000
 
     if not db_exists:
-        with st.status("⚙️ Collecte des donnees en cours (1-3 min)...", expanded=True) as status:
+        with st.status("⚙️ Collecte des donnees en cours (~30s)...", expanded=True) as status:
             st.write("→ Appel de l'API OpenAQ v3")
-            st.write("→ Recuperation des stations sur 7 villes")
+            st.write("→ Recuperation des stations (3 villes - mode cloud)")
             st.write("→ Telechargement des mesures sur 48h")
             st.write("→ Nettoyage et stockage en SQLite")
-            run_pipeline(days=jours)
+            # Mode cloud allege : 3 villes, 5 capteurs max/ville, 2 jours
+            run_pipeline(
+                days=2,
+                villes=["Paris", "Lyon", "Marseille"],
+                max_sensors_per_city=5,
+            )
             status.update(label="✅ Collecte terminee", state="complete")
 
     return charger_mesures()
@@ -72,7 +80,7 @@ with st.sidebar:
 
 
 try:
-    df = collecter_et_charger(jours=2)
+    df = collecter_et_charger()
 except Exception as e:
     st.error(f"Impossible de charger les donnees : {e}")
     st.info(

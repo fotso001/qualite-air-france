@@ -69,7 +69,7 @@ SEUILS_OMS = {
 }
 
 # Rate limit : OpenAQ v3 = 60 req/min en anonyme, on dort un peu entre appels
-SLEEP_BETWEEN_CALLS = 1.1
+SLEEP_BETWEEN_CALLS = 0.3
 
 
 # ─── APPELS API ───────────────────────────────────────────────────────────────
@@ -305,18 +305,28 @@ def sauvegarder_mesures(df: pd.DataFrame) -> int:
 
 # ─── PIPELINE ─────────────────────────────────────────────────────────────────
 
-def run_pipeline(days: int = 7):
+def run_pipeline(days: int = 7, villes: list = None, max_sensors_per_city: int = None):
+    """
+    Pipeline complet : API -> nettoyage -> SQLite.
+
+    Parametres :
+      days                 : nombre de jours de mesures a recuperer
+      villes               : liste des villes a traiter (par defaut toutes)
+      max_sensors_per_city : limite le nombre de capteurs par ville (utile en cloud)
+    """
     print("=" * 60)
     print(f"PIPELINE QUALITE DE L'AIR - {datetime.now():%Y-%m-%d %H:%M}")
     print("=" * 60)
 
     init_db()
 
+    villes_a_traiter = {k: v for k, v in VILLES.items() if villes is None or k in villes}
+
     total_stations = 0
     total_sensors = 0
     total_mesures = 0
 
-    for ville, bbox in VILLES.items():
+    for ville, bbox in villes_a_traiter.items():
         print(f"\n[{ville}]")
         locations = get_locations_in_bbox(*bbox)
         if not locations:
@@ -325,6 +335,10 @@ def run_pipeline(days: int = 7):
 
         stations = extraire_stations(locations, ville)
         sensors = extraire_sensors(locations)
+
+        # En mode cloud : on limite le nombre de capteurs par ville
+        if max_sensors_per_city:
+            sensors = sensors[:max_sensors_per_city]
 
         sauvegarder_stations(stations)
         sauvegarder_sensors(sensors)
@@ -352,4 +366,5 @@ def run_pipeline(days: int = 7):
 
 
 if __name__ == "__main__":
+    # En local : on prend tout
     run_pipeline(days=7)
